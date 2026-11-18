@@ -1,0 +1,14 @@
+Benchmark Level,Metric Scope,Strict IoU,SpaceNet Buffer IoU,Relaxed Prec,Relaxed Rec,Relaxed F1,Relaxed IoU
+Step 1: Water,Macro,52.53%,90.77%,92.42%,95.65%,94.01%,88.70%
+Step 1: Vegetation,Macro,61.91%,92.82%,93.43%,98.54%,95.92%,92.15%
+Step 1: Barren Land,Macro,64.19%,94.04%,96.51%,96.24%,96.37%,93.00%
+Step 1: Built-up Structures,Macro,16.96%,47.28%,56.69%,53.83%,55.23%,38.15%
+Step 1: Road Network,Macro,14.53%,53.79%,50.01%,67.95%,57.62%,40.47%
+Step 1: Macro 5-Class Summary,Macro Mean,42.02%,75.74%,77.81%,82.44%,79.83%,70.49%
+Step 2: Residential Built-up,Subclass,69.61%,42.96%,-,-,-,-
+Step 2: Industrial Built-up,Subclass,46.78%,33.84%,-,-,-,-
+Step 2: Slum / Informal Settlement,Subclass,11.85%,14.16%,-,-,-,-
+Step 2: Active Subclasses (Res+Ind),Subclass Active Mean,58.20%,38.40%,-,-,-,-
+Step 2: All 3 Subclasses Mean,Subclass Mean,42.75%,30.32%,-,-,-,-
+Overall 7-Class Unified Pipeline,Unified System,30.94%,57.29%,-,-,-,-
+Overall 7-Class Active (Excl Slum),Unified Active Mean,35.98%,65.91%,-,-,-,-

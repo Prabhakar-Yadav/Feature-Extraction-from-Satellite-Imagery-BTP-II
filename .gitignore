@@ -1,0 +1,57 @@
+# ==============================================================================
+# Master .gitignore for Satellite Urban Feature Extraction
+# ==============================================================================
+
+# Python Bytecode & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Model Checkpoints & Large Neural Network Weights
+*.pth
+*.pt
+*.onnx
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+*.npy
+*.npz
+
+# Exclude Large Local Datasets by Default
+data/raw/
+data/processed/
+data/ground_truth/
+data/interim/
+NISAR_*
+
+# Exclude Master Large GIS Vector Layers & Temporary Test Outputs
+outputs/shapefiles/
+outputs/test_model_outputs/
+
+# Whitelist Lightweight Demo Sample GIS Vectors (5-file complete companion sets)
+!outputs/sample_gis/
+!outputs/sample_gis/*
+
+# Whitelist Metadata & Manifests
+!data/manifests/
+!data/manifests/*
+
+# Exclude Archive, Quarantine & Protected Agent Scratch Environments
+archive/
+quarantine/
+Opencode/
+scratch/
+.commandcode/
+
+# System and OS Files
+.DS_Store
+Thumbs.db
+desktop.ini

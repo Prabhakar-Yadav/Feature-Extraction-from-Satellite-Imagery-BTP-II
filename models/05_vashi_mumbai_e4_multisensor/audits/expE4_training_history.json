@@ -1,0 +1,252 @@
+[
+  {
+    "epoch": 1,
+    "loss": 0.6479541346430778,
+    "vashi_val_miou": 31.031450961368755,
+    "vashi_val_acc": 46.584868688611465,
+    "mumbai_val_det_rate": 12.58223913273577,
+    "balanced_score": 23.65176622991556,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 2,
+    "loss": 0.50908722281456,
+    "vashi_val_miou": 33.00219079806884,
+    "vashi_val_acc": 49.09825862982636,
+    "mumbai_val_det_rate": 13.657963199206716,
+    "balanced_score": 25.26449975852399,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 3,
+    "loss": 0.468177892267704,
+    "vashi_val_miou": 34.84340202756957,
+    "vashi_val_acc": 52.78537889898082,
+    "mumbai_val_det_rate": 27.685271326466378,
+    "balanced_score": 31.980149747128294,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 4,
+    "loss": 0.4301056630909443,
+    "vashi_val_miou": 40.08730340512084,
+    "vashi_val_acc": 58.95739620176725,
+    "mumbai_val_det_rate": 8.757318656096977,
+    "balanced_score": 27.555309505511296,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 5,
+    "loss": 0.4124797433614731,
+    "vashi_val_miou": 36.830260312058655,
+    "vashi_val_acc": 53.370222939748345,
+    "mumbai_val_det_rate": 46.89677839861398,
+    "balanced_score": 40.85686754668079,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 6,
+    "loss": 0.3988746702671051,
+    "vashi_val_miou": 39.955521761476696,
+    "vashi_val_acc": 54.955079304437845,
+    "mumbai_val_det_rate": 42.30698524291532,
+    "balanced_score": 40.896107154052146,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 7,
+    "loss": 0.37646305188536644,
+    "vashi_val_miou": 39.733307224858166,
+    "vashi_val_acc": 55.82312707195938,
+    "mumbai_val_det_rate": 61.189257243450115,
+    "balanced_score": 48.31568723229495,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 8,
+    "loss": 0.3634181372821331,
+    "vashi_val_miou": 44.570244030116754,
+    "vashi_val_acc": 58.92155823669325,
+    "mumbai_val_det_rate": 68.1878701109149,
+    "balanced_score": 54.01729446243601,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 9,
+    "loss": 0.35690747797489164,
+    "vashi_val_miou": 44.5775750893089,
+    "vashi_val_acc": 58.278249510124105,
+    "mumbai_val_det_rate": 63.53178427582211,
+    "balanced_score": 52.15925876391418,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 10,
+    "loss": 0.34845770671963694,
+    "vashi_val_miou": 44.975506119064335,
+    "vashi_val_acc": 59.6058316798738,
+    "mumbai_val_det_rate": 84.93094976797563,
+    "balanced_score": 60.95768357862885,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 11,
+    "loss": 0.3337105020880699,
+    "vashi_val_miou": 46.38289558358413,
+    "vashi_val_acc": 59.975253564694434,
+    "mumbai_val_det_rate": 86.6846418245528,
+    "balanced_score": 62.50359407997159,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 12,
+    "loss": 0.33081959187984467,
+    "vashi_val_miou": 47.18984721050379,
+    "vashi_val_acc": 59.65635975993,
+    "mumbai_val_det_rate": 84.67079278245416,
+    "balanced_score": 62.18222543928394,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 13,
+    "loss": 0.320179408043623,
+    "vashi_val_miou": 46.94764243347055,
+    "vashi_val_acc": 59.85886644565767,
+    "mumbai_val_det_rate": 73.07180221384124,
+    "balanced_score": 57.39730634561883,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 14,
+    "loss": 0.3174647860229015,
+    "vashi_val_miou": 47.06301011670808,
+    "vashi_val_acc": 59.627078121341334,
+    "mumbai_val_det_rate": 87.37765101082408,
+    "balanced_score": 63.18886647435448,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 15,
+    "loss": 0.3118205010890961,
+    "vashi_val_miou": 47.732919157584384,
+    "vashi_val_acc": 59.530458573136315,
+    "mumbai_val_det_rate": 75.62379182984508,
+    "balanced_score": 58.88926822648866,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 16,
+    "loss": 0.3065200373530388,
+    "vashi_val_miou": 49.010811084942816,
+    "vashi_val_acc": 61.59525775482789,
+    "mumbai_val_det_rate": 91.58862885569921,
+    "balanced_score": 66.04193819324539,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 17,
+    "loss": 0.30004900246858596,
+    "vashi_val_miou": 49.47348328198314,
+    "vashi_val_acc": 61.15770922938516,
+    "mumbai_val_det_rate": 84.25966675394274,
+    "balanced_score": 63.38795667076698,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 18,
+    "loss": 0.2983501926064491,
+    "vashi_val_miou": 50.220674238622706,
+    "vashi_val_acc": 62.17438349580371,
+    "mumbai_val_det_rate": 85.12537115544241,
+    "balanced_score": 64.18255300535058,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 19,
+    "loss": 0.29569813683629037,
+    "vashi_val_miou": 51.178222923062066,
+    "vashi_val_acc": 64.1460631231283,
+    "mumbai_val_det_rate": 90.83489780342828,
+    "balanced_score": 67.04089287520856,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 20,
+    "loss": 0.2916023705154657,
+    "vashi_val_miou": 50.96242124410657,
+    "vashi_val_acc": 62.903023058058,
+    "mumbai_val_det_rate": 88.36814163235974,
+    "balanced_score": 65.92470939940785,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 21,
+    "loss": 0.29072199054062364,
+    "vashi_val_miou": 50.929575127899554,
+    "vashi_val_acc": 62.75360782815523,
+    "mumbai_val_det_rate": 90.63657684658537,
+    "balanced_score": 66.81237581537388,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 22,
+    "loss": 0.28783001713454726,
+    "vashi_val_miou": 51.2974137925361,
+    "vashi_val_acc": 62.59364332105049,
+    "mumbai_val_det_rate": 91.44378770744316,
+    "balanced_score": 67.35596335849893,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 23,
+    "loss": 0.2890727072954178,
+    "vashi_val_miou": 53.190743585468766,
+    "vashi_val_acc": 66.21150314876206,
+    "mumbai_val_det_rate": 90.36360699025666,
+    "balanced_score": 68.05988894738393,
+    "false_slums": 0,
+    "is_best": true
+  },
+  {
+    "epoch": 24,
+    "loss": 0.2907492831349373,
+    "vashi_val_miou": 51.48280452448953,
+    "vashi_val_acc": 63.49412765118371,
+    "mumbai_val_det_rate": 88.91909507707221,
+    "balanced_score": 66.45732074552261,
+    "false_slums": 0,
+    "is_best": false
+  },
+  {
+    "epoch": 25,
+    "loss": 0.2870948135852814,
+    "vashi_val_miou": 51.038208050348885,
+    "vashi_val_acc": 63.279740704681856,
+    "mumbai_val_det_rate": 83.57947043847872,
+    "balanced_score": 64.05471300560082,
+    "false_slums": 0,
+    "is_best": false
+  }
+]

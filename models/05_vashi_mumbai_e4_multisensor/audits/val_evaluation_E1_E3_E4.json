@@ -1,0 +1,200 @@
+{
+  "Experiment_E1": {
+    "accuracy": 75.01,
+    "miou": 61.4,
+    "bf1": 66.88,
+    "mumbai_det": 93.44,
+    "per_class": {
+      "Non-slum": {
+        "iou": 59.43,
+        "precision": 81.93,
+        "recall": 68.4
+      },
+      "Road": {
+        "iou": 42.32,
+        "precision": 60.76,
+        "recall": 58.23
+      },
+      "Vegetation": {
+        "iou": 76.6,
+        "precision": 78.76,
+        "recall": 96.55
+      },
+      "Open Land": {
+        "iou": 67.27,
+        "precision": 72.49,
+        "recall": 90.32
+      }
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        659768,
+        99479,
+        45930,
+        159450
+      ],
+      [
+        0,
+        117230,
+        200076,
+        0,
+        26282
+      ],
+      [
+        0,
+        6021,
+        1,
+        171935,
+        130
+      ],
+      [
+        0,
+        22288,
+        29730,
+        447,
+        489808
+      ]
+    ],
+    "road_pred_pct": 16.23
+  },
+  "Experiment_E3": {
+    "accuracy": 66.08,
+    "miou": 53.38,
+    "bf1": 63.1,
+    "mumbai_det": 91.21,
+    "per_class": {
+      "Non-slum": {
+        "iou": 44.2,
+        "precision": 74.63,
+        "recall": 52.02
+      },
+      "Road": {
+        "iou": 40.6,
+        "precision": 54.72,
+        "recall": 61.15
+      },
+      "Vegetation": {
+        "iou": 73.47,
+        "precision": 78.25,
+        "recall": 92.32
+      },
+      "Open Land": {
+        "iou": 55.27,
+        "precision": 60.92,
+        "recall": 85.63
+      }
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        501751,
+        133498,
+        45658,
+        283720
+      ],
+      [
+        0,
+        119883,
+        210100,
+        0,
+        13605
+      ],
+      [
+        0,
+        13153,
+        1,
+        164405,
+        528
+      ],
+      [
+        0,
+        37550,
+        40361,
+        39,
+        464323
+      ]
+    ],
+    "road_pred_pct": 18.93
+  },
+  "Experiment_E4": {
+    "accuracy": 66.22,
+    "miou": 53.19,
+    "bf1": 64.37,
+    "mumbai_det": 90.36,
+    "per_class": {
+      "Non-slum": {
+        "iou": 44.47,
+        "precision": 74.51,
+        "recall": 52.45
+      },
+      "Road": {
+        "iou": 40.14,
+        "precision": 62.44,
+        "recall": 52.91
+      },
+      "Vegetation": {
+        "iou": 73.71,
+        "precision": 77.25,
+        "recall": 94.14
+      },
+      "Open Land": {
+        "iou": 54.46,
+        "precision": 57.98,
+        "recall": 89.96
+      }
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        505971,
+        82613,
+        48718,
+        327325
+      ],
+      [
+        0,
+        135908,
+        181798,
+        0,
+        25882
+      ],
+      [
+        0,
+        10119,
+        8,
+        167657,
+        303
+      ],
+      [
+        0,
+        27071,
+        26720,
+        652,
+        487830
+      ]
+    ],
+    "road_pred_pct": 14.35
+  }
+}
