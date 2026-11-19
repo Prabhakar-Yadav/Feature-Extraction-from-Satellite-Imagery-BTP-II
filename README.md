@@ -4,20 +4,42 @@ This repository provides an end-to-end framework for urban feature extraction, h
 
 Developed as part of the B.Tech Project (BTP-II) at the Indian Institute of Technology Bombay (IITB).
 
+🌐 **Deployed Streamlit Application:** [https://mpupqnx7annqnv6ejotxsl.streamlit.app/](https://mpupqnx7annqnv6ejotxsl.streamlit.app/)
+
 ---
 
-## 1. The Three Primary Model Pipelines
+## 1. Web Application: Two Production Model Pipelines
 
-The project centers around three production-grade model architectures evaluated across panchromatic and multispectral satellite imagery:
+The Streamlit web application (`app.py`) exposes **exactly two production model choices** in the user interface:
 
+### Option 1: Vashi–Mumbai E4 Sensor-Adaptive U-Net (PRIMARY / PREFERRED)
+* **Architecture:** `HighResNDVIAdaptiveUNet` (ResNet-18 dual-stem backbone with native-resolution $512 \times 512$ shallow skip connections).
+* **Sensors Supported:**
+  1. **SPOT-5 Multispectral (4-Band):** Takes Bands [Red, Green, Blue, NIR], computes physics-based NDVI on-the-fly, and feeds a 5-channel tensor `[R, G, B, NIR, NDVI]`.
+  2. **Pléiades High-Resolution RGB (3-Band):** Takes high-resolution RGB imagery.
+* **Loss Function:** Calibrated Focal Cross-Entropy + Masked Soft Dice Loss.
+* **Output Classes (5):** Non-Slum Built-Up, Road Network, Vegetation, Open Land / Soil, Slum / Informal Settlement.
+* **Checkpoint:** `best_expE4_model.pth` ([Release v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0)).
+
+### Option 2: Multispectral SegFormer–U-Net Hybrid (Hierarchical 7-Class)
+* **Architecture:** Dual-stage collaborative pipeline:
+  * **Stage 1 (Macro):** `MultispectralSegFormer5Class` / Attention U-Net ensemble predicting 5 macro classes: Water, Vegetation, Barren Land, Built-Up, Roads.
+  * **Stage 2 (Subclass Specialist):** `MultispectralSegFormerSubclass` with scSE attention gated strictly within Stage-1 Built-Up areas to classify Residential, Industrial, and Slum.
+* **Input Requirement:** 4-band multispectral imagery (VNIR: Blue, Green, Red, Near-Infrared).
+* **Output Classes (7 Unified):** Water, Vegetation, Barren Land, Residential Built-Up, Industrial Built-Up, Slum / Informal Settlement, Road Network.
+* **Checkpoints:** `best_5class_segformer_extended.pth`, `best_5class_segformer_lovasz.pth`, `best_5class_unet_multispectral.pth` ([Release v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1)) + `best_3subclass_segformer.pth` ([Release v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0)).
+
+*(Note: The monochromatic Cartosat-1 2.5m U-Net and SegFormer implementations under `models/01_cartosat1_unet_2.5m/` and `models/02_cartosat1_segformer_2.5m/` are preserved in the repository as research benchmarks and baseline evaluations).*
+
+---
+
+## 2. Running the Interactive Streamlit Web App Locally
+
+```bash
+# Launch the application locally
+streamlit run app.py
 ```
-models/
-├── 01_cartosat1_unet_2.5m/          # Model 1: Macro 5-class U-Net baseline (2.5m panchromatic)
-├── 02_cartosat1_segformer_2.5m/     # Model 2: Transformer-based SegFormer benchmark (2.5m panchromatic)
-├── 03_cartosat2e_hybrid_0.60m/      # Model 3: Hierarchical Dual-Stream Hybrid (0.60m multispectral)
-├── 04_cartosat2e_subclasses_0.60m/  # Subclass specialist (Residential, Industrial, Slum)
-└── 05_vashi_mumbai_e4_multisensor/  # Dual-stem multisensor model (SPOT-5 4-band + Pléiades RGB)
-```
+The application will automatically check for local checkpoints. If running in a clean or cloud environment (such as Streamlit Community Cloud), it automatically retrieves and caches the required weights from GitHub Releases on-demand.
 
 ### Model Architecture Highlights
 

@@ -28,12 +28,10 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-BASE_DIR = SCRIPT_DIR.parent
-ROOT_DIR = BASE_DIR.parent
+MODELS_DIR = SCRIPT_DIR.parent
+ROOT_DIR = MODELS_DIR.parent
 
 sys.path.insert(0, str(SCRIPT_DIR))
-STAGE1_SCRIPTS = ROOT_DIR / "05_Multispectral_5Class_Training" / "scripts"
-sys.path.insert(0, str(STAGE1_SCRIPTS))
 
 from models import MultispectralSegFormer5Class, MultispectralUltraRoadUNet5Class
 from models_subclass import MultispectralSegFormerSubclass
@@ -162,11 +160,33 @@ def main():
         torch.cuda.set_per_process_memory_fraction(0.60, 0)
         print(f"Device: {device} ({torch.cuda.get_device_name(0)}) - Memory capped to 60%", flush=True)
 
-    # Checkpoint paths
-    ckpt_seg_5c = ROOT_DIR / "05_Multispectral_5Class_Training" / "checkpoints" / "best_5class_segformer_extended.pth"
-    ckpt_seg_lov = ROOT_DIR / "05_Multispectral_5Class_Training" / "checkpoints" / "best_5class_segformer_lovasz.pth"
-    ckpt_unet_5c = ROOT_DIR / "05_Multispectral_5Class_Training" / "checkpoints" / "best_5class_unet_multispectral.pth"
-    ckpt_sub_3c = BASE_DIR / "checkpoints" / "best_3subclass_segformer.pth"
+    # Checkpoint paths with multi-location resolution
+    def find_ckpt(name, candidates):
+        for c in candidates:
+            if c.exists():
+                return c
+        return candidates[0]
+
+    ckpt_seg_5c = find_ckpt("best_5class_segformer_extended.pth", [
+        SCRIPT_DIR / "checkpoints" / "best_5class_segformer_extended.pth",
+        SCRIPT_DIR / "best_5class_segformer_extended.pth",
+        ROOT_DIR / "archive" / "semester2_experimental_phases" / "Phase_2_Model_Training" / "05_Multispectral_5Class_Training" / "checkpoints" / "best_5class_segformer_extended.pth"
+    ])
+    ckpt_seg_lov = find_ckpt("best_5class_segformer_lovasz.pth", [
+        SCRIPT_DIR / "checkpoints" / "best_5class_segformer_lovasz.pth",
+        SCRIPT_DIR / "best_5class_segformer_lovasz.pth",
+        ROOT_DIR / "archive" / "semester2_experimental_phases" / "Phase_2_Model_Training" / "05_Multispectral_5Class_Training" / "checkpoints" / "best_5class_segformer_lovasz.pth"
+    ])
+    ckpt_unet_5c = find_ckpt("best_5class_unet_multispectral.pth", [
+        SCRIPT_DIR / "checkpoints" / "best_5class_unet_multispectral.pth",
+        SCRIPT_DIR / "best_5class_unet_multispectral.pth",
+        ROOT_DIR / "archive" / "semester2_experimental_phases" / "Phase_2_Model_Training" / "05_Multispectral_5Class_Training" / "checkpoints" / "best_5class_unet_multispectral.pth"
+    ])
+    ckpt_sub_3c = find_ckpt("best_3subclass_segformer.pth", [
+        MODELS_DIR / "04_cartosat2e_subclasses_0.60m" / "best_3subclass_segformer.pth",
+        SCRIPT_DIR / "checkpoints" / "best_3subclass_segformer.pth",
+        SCRIPT_DIR / "best_3subclass_segformer.pth"
+    ])
 
     print("Loading Pretrained Models...", flush=True)
     segformer = MultispectralSegFormer5Class(num_classes=5, in_channels=4).to(device)
@@ -188,7 +208,11 @@ def main():
     print("  -> Step 1 Attention UltraRoad U-Net (5-Class Boundary Detail) Loaded.")
 
     subclass_net = MultispectralSegFormerSubclass(num_classes=3, in_channels=4).to(device)
-    hybrid_ckpt_path = BASE_DIR / "checkpoints" / "best_hybrid_hierarchical_model.pth"
+    hybrid_ckpt_path = find_ckpt("best_hybrid_hierarchical_model.pth", [
+        SCRIPT_DIR / "best_hybrid_hierarchical_model.pth",
+        SCRIPT_DIR / "checkpoints" / "best_hybrid_hierarchical_model.pth",
+        MODELS_DIR / "checkpoints" / "best_hybrid_hierarchical_model.pth"
+    ])
     if hybrid_ckpt_path.exists():
         print(f"Loading Fine-Tuned Subclass Weights from: {hybrid_ckpt_path.name}...", flush=True)
         h_ckpt = torch.load(hybrid_ckpt_path, map_location=device, weights_only=False)
@@ -203,11 +227,14 @@ def main():
     subclass_net.eval()
 
     # Load dataset index
-    df_index = pd.read_csv(BASE_DIR / "data" / "subclass_dataset_index.csv")
+    index_csv = ROOT_DIR / "data" / "processed" / "cartosat2e_0.60m" / "subclass_dataset_index.csv"
+    if not index_csv.exists():
+        index_csv = ROOT_DIR / "data" / "subclass_dataset_index.csv"
+    df_index = pd.read_csv(index_csv)
     test_df = df_index[df_index["split"] == "test"].reset_index(drop=True)
     print(f"\nHeld-Out Test Scene: Pune City ({len(test_df)} Patches)", flush=True)
 
-    results_dir = BASE_DIR / "visual_results" / "hierarchical_benchmark_verified"
+    results_dir = SCRIPT_DIR / "visual_results" / "hierarchical_benchmark_verified"
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # Accumulators for 5-Class Macro
@@ -501,7 +528,7 @@ def main():
         {"Benchmark Level": "Overall 7-Class Active (Excl Slum)", "Metric Scope": "Unified Active Mean", "Strict IoU": f"{active_6c_strict_miou*100:.2f}%", "SpaceNet Buffer IoU": f"{active_6c_buf_miou*100:.2f}%", "Relaxed Prec": "-", "Relaxed Rec": "-", "Relaxed F1": "-", "Relaxed IoU": "-"},
     ]
     summary_df = pd.DataFrame(summary_data)
-    csv_out = BASE_DIR / "hierarchical_metrics_summary.csv"
+    csv_out = SCRIPT_DIR / "hierarchical_metrics_summary.csv"
     summary_df.to_csv(csv_out, index=False)
     print(f"\nSaved comprehensive benchmark summary table to: {csv_out}", flush=True)
 

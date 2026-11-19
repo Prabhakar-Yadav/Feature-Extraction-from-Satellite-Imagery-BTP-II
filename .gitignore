@@ -32,6 +32,10 @@ data/ground_truth/
 data/interim/
 NISAR_*
 
+# Whitelist Demo Sample Patches
+!demo_samples/
+!demo_samples/*
+
 # Exclude Master Large GIS Vector Layers & Temporary Test Outputs
 outputs/shapefiles/
 outputs/test_model_outputs/
