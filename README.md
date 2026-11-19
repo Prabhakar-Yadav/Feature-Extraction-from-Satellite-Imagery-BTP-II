@@ -27,7 +27,7 @@ The Streamlit web application (`app.py`) exposes **strictly TWO selectable produ
 
 ### Option 2: Pune Multispectral SegFormer + Attention U-Net Hybrid
 * **Status:** Second production model, exposed as ONE unified hierarchical choice in the UI.
-* **Primary Directory:** `models/03_cartosat2e_hybrid_0.60m/` (utilizing `models/04_cartosat2e_subclasses_0.60m/` internally).
+* **Primary Directory:** `models/03_cartosat2e_hybrid_0.60m/` (self-contained with Stage-1 models and Stage-2 subclass module).
 * **Dataset:** Trained and benchmarked on the Pune-area high-resolution multispectral dataset.
 * **Two-Stage Collaborative Architecture:**
   * **Stage 1 (Macro Ensemble):** Triple probability ensemble blending three specialized backbones:
@@ -48,23 +48,27 @@ The Streamlit web application (`app.py`) exposes **strictly TWO selectable produ
 
 ---
 
-## 2. Repository Architecture & Directory Rationale
+## 2. Repository Architecture & Model Organization
 
-The repository maintains five model directories in `models/`. Only **two** are exposed in the user-facing Streamlit application:
+The repository strictly separates the **two production models** from historical research benchmarks and modular components:
 
 ```text
-models/
-├── 01_cartosat1_unet_2.5m/          # [Historical Benchmark] Monochromatic Cartosat-1 2.5m ResNet-34 U-Net.
-├── 02_cartosat1_segformer_2.5m/     # [Historical Benchmark] Monochromatic Cartosat-1 2.5m MiT-B2 SegFormer.
-├── 03_cartosat2e_hybrid_0.60m/      # [PRODUCTION OPTION 2] Pune Multispectral SegFormer + UNet Hybrid (Macro Ensemble).
-├── 04_cartosat2e_subclasses_0.60m/  # [Internal Supporting Module] Subclass specialist used internally by Option 2.
-└── 05_vashi_mumbai_e4_multisensor/  # [PRODUCTION OPTION 1 - PREFERRED] Vashi-Mumbai E4 Sensor-Adaptive U-Net.
+├── models/                           # MAIN PRODUCTION MODELS (Strictly 2 Choices)
+│   ├── 05_vashi_mumbai_e4_multisensor/  # [PRODUCTION OPTION 1 - PREFERRED] Vashi–Mumbai E4 Sensor-Adaptive U-Net
+│   └── 03_cartosat2e_hybrid_0.60m/      # [PRODUCTION OPTION 2] Pune Multispectral SegFormer + Attention U-Net Hybrid
+│
+└── other_models/                     # HISTORICAL BENCHMARKS & EXPERIMENTAL MODULES
+    ├── 01_cartosat1_unet_2.5m/          # Monochromatic Cartosat-1 2.5m ResNet-34 U-Net (Semester 1 Baseline)
+    ├── 02_cartosat1_segformer_2.5m/     # Monochromatic Cartosat-1 2.5m MiT-B2 SegFormer (Semester 1 Baseline)
+    └── 04_cartosat2e_subclasses_0.60m/  # Standalone 3-Subclass Specialist Training & TTA Module
 ```
 
-### Why are all five model directories retained?
-1. **Preservation of Academic & Experimental Lineage:** Directories `01` and `02` represent the Semester 1 baseline research benchmarks evaluating monochromatic panchromatic Cartosat-1 2.5m imagery. They must remain intact for thesis reproduction, ablation analysis, and historical reference.
-2. **Modular Subclass Specialization:** Directory `04` contains the standalone subclass specialist training scripts and model definitions (`models_subclass.py`). Rather than exposing it as an incomplete standalone model in the UI, it is invoked internally by the hierarchical hybrid pipeline in Option 2 (`models/03_cartosat2e_hybrid_0.60m/`).
-3. **Clean User Interface:** Exposing all five models causes user confusion between monochromatic baselines, partial subclass models, and multispectral ensembles. The UI therefore encapsulates the entire project into the two production-grade solutions.
+### Clean Separation Rationale:
+1. **Primary Production Focus:** `models/` contains exclusively the two production pipelines exposed in the interactive Streamlit platform. This avoids ambiguity for users, reviewers, and evaluators.
+2. **Preservation of Academic & Experimental Lineage in `other_models/`:**
+   - Directories `01` and `02` preserve the Semester 1 baseline research benchmarks evaluating monochromatic panchromatic Cartosat-1 2.5m imagery for thesis reproduction and ablation analysis.
+   - Directory `04` preserves the standalone subclass training notebooks (`02_SegFormer_Subclass_Training_and_TTA.ipynb`) and experimental setups.
+3. **Self-Contained Deployment:** The hybrid pipeline in `models/03_cartosat2e_hybrid_0.60m/` embeds its own `models_subclass.py` and checkpoint bundle, ensuring fast and robust inference without dependencies on historical folders.
 
 ---
 

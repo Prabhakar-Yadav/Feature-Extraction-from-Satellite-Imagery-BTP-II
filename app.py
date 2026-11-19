@@ -91,7 +91,7 @@ REPO_RELEASE_V101 = "https://github.com/Prabhakar-Yadav/Feature-Extraction-from-
 # Add model subdirectories to system path
 sys.path.insert(0, str(ROOT_DIR / "models" / "05_vashi_mumbai_e4_multisensor" / "scripts"))
 sys.path.insert(0, str(ROOT_DIR / "models" / "03_cartosat2e_hybrid_0.60m"))
-sys.path.insert(0, str(ROOT_DIR / "models" / "04_cartosat2e_subclasses_0.60m"))
+sys.path.insert(0, str(ROOT_DIR / "other_models" / "04_cartosat2e_subclasses_0.60m"))
 
 EXPECTED_SHAS = {
     "best_expE4_model.pth": "bbd658ed027cc9fe9369a892f09b09ff084436bb442ccac857b2c8049a66e4c0",
@@ -311,8 +311,9 @@ def load_pune_hybrid_models(device: str):
     ckpt_sub = ensure_checkpoint(
         "best_3subclass_segformer.pth",
         [
-            ROOT_DIR / "models" / "04_cartosat2e_subclasses_0.60m" / "best_3subclass_segformer.pth",
-            ROOT_DIR / "models" / "03_cartosat2e_hybrid_0.60m" / "checkpoints" / "best_3subclass_segformer.pth"
+            ROOT_DIR / "models" / "03_cartosat2e_hybrid_0.60m" / "checkpoints" / "best_3subclass_segformer.pth",
+            ROOT_DIR / "models" / "03_cartosat2e_hybrid_0.60m" / "best_3subclass_segformer.pth",
+            ROOT_DIR / "other_models" / "04_cartosat2e_subclasses_0.60m" / "best_3subclass_segformer.pth"
         ],
         release_tag="v1.0.0"
     )

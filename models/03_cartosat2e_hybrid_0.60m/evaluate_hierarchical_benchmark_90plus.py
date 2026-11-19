@@ -183,9 +183,10 @@ def main():
         ROOT_DIR / "archive" / "semester2_experimental_phases" / "Phase_2_Model_Training" / "05_Multispectral_5Class_Training" / "checkpoints" / "best_5class_unet_multispectral.pth"
     ])
     ckpt_sub_3c = find_ckpt("best_3subclass_segformer.pth", [
-        MODELS_DIR / "04_cartosat2e_subclasses_0.60m" / "best_3subclass_segformer.pth",
         SCRIPT_DIR / "checkpoints" / "best_3subclass_segformer.pth",
-        SCRIPT_DIR / "best_3subclass_segformer.pth"
+        SCRIPT_DIR / "best_3subclass_segformer.pth",
+        ROOT_DIR / "other_models" / "04_cartosat2e_subclasses_0.60m" / "best_3subclass_segformer.pth",
+        MODELS_DIR / "04_cartosat2e_subclasses_0.60m" / "best_3subclass_segformer.pth"
     ])
 
     print("Loading Pretrained Models...", flush=True)
