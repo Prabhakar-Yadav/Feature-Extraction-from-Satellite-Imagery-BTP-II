@@ -1,6 +1,6 @@
 # High-Resolution Satellite Urban Feature Extraction Platform
 
-This repository provides an end-to-end framework for urban feature extraction, hierarchical land-cover segmentation, and fine-grained built-up characterization across multi-resolution satellite platforms (Cartosat-1 2.5m, Cartosat-2E 0.60m, SPOT-5, and Pléiades).
+This repository provides an end-to-end framework for urban feature extraction, hierarchical land-cover segmentation, and fine-grained built-up characterization across multi-sensor satellite platforms (SPOT-5, Pléiades, and high-resolution multispectral imagery).
 
 Developed as part of the B.Tech Project (BTP-II) at the Indian Institute of Technology Bombay (IITB).
 
@@ -10,167 +10,130 @@ Developed as part of the B.Tech Project (BTP-II) at the Indian Institute of Tech
 
 ## 1. Web Application: Two Production Model Pipelines
 
-The Streamlit web application (`app.py`) exposes **exactly two production model choices** in the user interface:
+The Streamlit web application (`app.py`) exposes **strictly TWO selectable production model options** in the user interface:
 
 ### Option 1: Vashi–Mumbai E4 Sensor-Adaptive U-Net (PRIMARY / PREFERRED)
-* **Architecture:** `HighResNDVIAdaptiveUNet` (ResNet-18 dual-stem backbone with native-resolution $512 \times 512$ shallow skip connections).
-* **Sensors Supported:**
-  1. **SPOT-5 Multispectral (4-Band):** Takes Bands [Red, Green, Blue, NIR], computes physics-based NDVI on-the-fly, and feeds a 5-channel tensor `[R, G, B, NIR, NDVI]`.
-  2. **Pléiades High-Resolution RGB (3-Band):** Takes high-resolution RGB imagery.
-* **Loss Function:** Calibrated Focal Cross-Entropy + Masked Soft Dice Loss.
+* **Status:** Primary production model, selected by default in the UI.
+* **Directory:** `models/05_vashi_mumbai_e4_multisensor/`
+* **Architecture:** `HighResNDVIAdaptiveUNet` (Pretrained ResNet-18 Encoder + 5-Stage Multi-Scale Decoder + Native Resolution $512 \times 512$ Shallow Skips).
+* **Sensors Supported & Sensor-Adaptive Stems:**
+  1. **SPOT-5 Multispectral (4-Band):** Takes Bands [Red, Green, Blue, NIR], computes physics-based NDVI on-the-fly, and feeds a calibrated 5-channel tensor `[R, G, B, NIR, NDVI]`.
+  2. **Pléiades High-Resolution RGB (3-Band):** Takes high-resolution RGB imagery normalized with ImageNet statistics.
+* **Loss Function:** Calibrated Multi-Task Focal Cross-Entropy + Masked Soft Dice Loss with inverse-frequency class weighting.
 * **Output Classes (5):** Non-Slum Built-Up, Road Network, Vegetation, Open Land / Soil, Slum / Informal Settlement.
-* **Checkpoint:** `best_expE4_model.pth` ([Release v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0)).
-
-### Option 2: Multispectral SegFormer–U-Net Hybrid (Hierarchical 7-Class)
-* **Architecture:** Dual-stage collaborative pipeline:
-  * **Stage 1 (Macro):** `MultispectralSegFormer5Class` / Attention U-Net ensemble predicting 5 macro classes: Water, Vegetation, Barren Land, Built-Up, Roads.
-  * **Stage 2 (Subclass Specialist):** `MultispectralSegFormerSubclass` with scSE attention gated strictly within Stage-1 Built-Up areas to classify Residential, Industrial, and Slum.
-* **Input Requirement:** 4-band multispectral imagery (VNIR: Blue, Green, Red, Near-Infrared).
-* **Output Classes (7 Unified):** Water, Vegetation, Barren Land, Residential Built-Up, Industrial Built-Up, Slum / Informal Settlement, Road Network.
-* **Checkpoints:** `best_5class_segformer_extended.pth`, `best_5class_segformer_lovasz.pth`, `best_5class_unet_multispectral.pth` ([Release v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1)) + `best_3subclass_segformer.pth` ([Release v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0)).
-
-*(Note: The monochromatic Cartosat-1 2.5m U-Net and SegFormer implementations under `models/01_cartosat1_unet_2.5m/` and `models/02_cartosat1_segformer_2.5m/` are preserved in the repository as research benchmarks and baseline evaluations).*
+* **Checkpoint:** `best_expE4_model.pth` ([Release v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0), SHA-256: `bbd658ed027cc9fe9369a892f09b09ff084436bb442ccac857b2c8049a66e4c0`).
 
 ---
 
-## 2. Running the Interactive Streamlit Web App Locally
-
-```bash
-# Launch the application locally
-streamlit run app.py
-```
-The application will automatically check for local checkpoints. If running in a clean or cloud environment (such as Streamlit Community Cloud), it automatically retrieves and caches the required weights from GitHub Releases on-demand.
-
-### Model Architecture Highlights
-
-| Model | Ground Resolution | Spectral Bands | Architecture / Backbone | Output Classes | Primary Application |
-| :--- | :---: | :---: | :--- | :---: | :--- |
-| **Model 1: Cartosat-1 U-Net** | 2.5m | 1 Band (Panchromatic, 3-ch) | `RobustUltraRoadUNet` (ResNet-34 + ASPP) | 5 Macro Classes | Rapid regional baseline land-cover mapping |
-| **Model 2: Cartosat-1 SegFormer** | 2.5m | 1 Band (Panchromatic, 3-ch) | `RoadEnhancedSegFormer` (MiT-B2 Transformer) | 5 Macro Classes | High-precision road corridor & built-up delineation |
-| **Model 3: Cartosat-2E Hybrid** | 0.60m | 4 Bands (VNIR: R, G, B, NIR) | Dual-Stream Hierarchical (Macro + Subclasses) | 7 Unified Urban Classes | Complete urban characterization & slum mapping |
-
-### Hierarchical Coupling (Model 3 & Model 4)
-* **Macro Stream (`MultispectralSegFormer5Class`):** Delineates broad land-cover categories (Background, Road, Vegetation, Water, Built-Up). The predicted built-up polygon forms a spatial gating mask.
-* **Subclass Specialist (`MultispectralSegFormerSubclass`):** Focuses exclusively on the gated built-up pixels using Edge-Guided SegFormer-B2 with spatial/channel squeeze-and-excitation (scSE) attention to categorize urban fabric into:
-  1. **Residential Built-Up** (formal organized housing layouts)
-  2. **Industrial Built-Up** (large contiguous shed footprints, warehousing)
-  3. **Slum / Informal Settlements** (high-density, irregular organic morphologies)
-* **Unified 7-Class Output:** Seamlessly merges macro features and fine-grained subclasses into a single georeferenced raster and GIS vector layer.
+### Option 2: Pune Multispectral SegFormer + Attention U-Net Hybrid
+* **Status:** Second production model, exposed as ONE unified hierarchical choice in the UI.
+* **Primary Directory:** `models/03_cartosat2e_hybrid_0.60m/` (utilizing `models/04_cartosat2e_subclasses_0.60m/` internally).
+* **Dataset:** Trained and benchmarked on the Pune-area high-resolution multispectral dataset.
+* **Two-Stage Collaborative Architecture:**
+  * **Stage 1 (Macro Ensemble):** Triple probability ensemble blending three specialized backbones:
+    - **SegFormer Extended** (Weight: 0.35)
+    - **SegFormer Lovasz** (Weight: 0.35, IoU specialist)
+    - **Attention UltraRoad U-Net** (Weight: 0.30, boundary and corridor detail)
+    - **Physical Multispectral Safeguards:** Real-time NDVI and NDWI physical constraints applied to eliminate false water predictions in shadowed asphalt and confirm genuine vegetation chlorophyll absorption.
+    - **Macro Classes (5):** Water, Vegetation, Barren Land / Soil, Built-Up, Road Network.
+  * **Stage 2 (Subclass Specialist):** `MultispectralSegFormerSubclass` with spatial/channel squeeze-and-excitation (scSE) attention, applied strictly within the Stage-1 predicted Built-Up footprint.
+    - **Subclasses (3):** Residential Built-Up, Industrial Built-Up, Slum / Informal Settlement.
+* **Strict Input Validation:** Requires genuine 4-band multispectral imagery (Blue, Green, Red, Near-Infrared). Fake or synthesized NIR is strictly disallowed to ensure scientific rigor.
+* **Output Classes (7 Unified):** Water, Vegetation, Barren Land / Soil, Residential Built-Up, Industrial Built-Up, Slum / Informal Settlement, Road Network.
+* **Checkpoints:**
+  - `best_5class_segformer_extended.pth` ([Release v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1), SHA-256: `b664b90bde7da335465db2ee27125fd62ff60eb11ac93670c224657df8670d77`)
+  - `best_5class_segformer_lovasz.pth` ([Release v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1), SHA-256: `6c9bbd80a423b3d77f7bd20799f5a474973c5ce0603540b85c6301e5a112df50`)
+  - `best_5class_unet_multispectral.pth` ([Release v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1), SHA-256: `a813fe6cd69adfb00164e4e0865ab10e3f972f5273bf0618524f6d81f59151e2`)
+  - `best_3subclass_segformer.pth` ([Release v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0), SHA-256: `1ce752382d1c2b6758deca50508fe73f6b52f2dc8c54e39570728680de15fdf9`)
 
 ---
 
-## 2. Directory Structure
+## 2. Repository Architecture & Directory Rationale
+
+The repository maintains five model directories in `models/`. Only **two** are exposed in the user-facing Streamlit application:
 
 ```text
-├── models/                       # Self-contained model families
-│   ├── 01_cartosat1_unet_2.5m/   # Model 1 architecture, dataset loader, eval script & config
-│   ├── 02_cartosat1_segformer_2.5m/ # Model 2 architecture, dataset loader, eval script & config
-│   ├── 03_cartosat2e_hybrid_0.60m/ # Model 3 hierarchical hybrid model & benchmark evaluators
-│   ├── 04_cartosat2e_subclasses_0.60m/ # Model 4 standalone 3-subclass specialist
-│   └── 05_vashi_mumbai_e4_multisensor/ # Model 5 dual-stem NDVI adaptive network
-├── data/                         # Centralized dataset storage
-│   ├── manifests/                # Verified CSV manifests (v4_dataset_manifest, autonomous_manifest)
-│   ├── raw/                      # Raw satellite scenes (Cartosat, SPOT) [Local / Excluded from Git]
-│   ├── processed/                # Harmonized tile arrays [Local / Excluded from Git]
-│   └── ground_truth/             # Reference raster masks [Local / Excluded from Git]
-├── outputs/                      # Deliverables and benchmark results
-│   ├── sample_gis/               # 5 Complete demo GIS shapefile layers (.shp, .shx, .dbf, .prj, .cpg)
-│   ├── shapefiles/               # Master full-scene GIS database (15 layers) [Local]
-│   └── visual_comparisons/       # Multi-panel prediction mosaics and IoU overlays
-├── docs/                         # Documentation, thesis report, and presentation
-│   ├── reports/                  # BTP Final Thesis (23b0653.docx)
-│   ├── presentations/            # Presentation slide deck (PPTX) & visual assets
-│   └── report_builder/           # Automated Python DOCX thesis compilation suite
-├── scripts/                      # Preprocessing, GIS vectorization, and data generation utilities
-├── shared/                       # Shared evaluation metrics (SpaceNet buffer IoU, Mnih relaxed metrics)
-├── requirements.txt              # Complete Python dependency specification
-└── .gitignore                    # Watertight exclusion rules for large datasets and binaries
+models/
+├── 01_cartosat1_unet_2.5m/          # [Historical Benchmark] Monochromatic Cartosat-1 2.5m ResNet-34 U-Net.
+├── 02_cartosat1_segformer_2.5m/     # [Historical Benchmark] Monochromatic Cartosat-1 2.5m MiT-B2 SegFormer.
+├── 03_cartosat2e_hybrid_0.60m/      # [PRODUCTION OPTION 2] Pune Multispectral SegFormer + UNet Hybrid (Macro Ensemble).
+├── 04_cartosat2e_subclasses_0.60m/  # [Internal Supporting Module] Subclass specialist used internally by Option 2.
+└── 05_vashi_mumbai_e4_multisensor/  # [PRODUCTION OPTION 1 - PREFERRED] Vashi-Mumbai E4 Sensor-Adaptive U-Net.
 ```
+
+### Why are all five model directories retained?
+1. **Preservation of Academic & Experimental Lineage:** Directories `01` and `02` represent the Semester 1 baseline research benchmarks evaluating monochromatic panchromatic Cartosat-1 2.5m imagery. They must remain intact for thesis reproduction, ablation analysis, and historical reference.
+2. **Modular Subclass Specialization:** Directory `04` contains the standalone subclass specialist training scripts and model definitions (`models_subclass.py`). Rather than exposing it as an incomplete standalone model in the UI, it is invoked internally by the hierarchical hybrid pipeline in Option 2 (`models/03_cartosat2e_hybrid_0.60m/`).
+3. **Clean User Interface:** Exposing all five models causes user confusion between monochromatic baselines, partial subclass models, and multispectral ensembles. The UI therefore encapsulates the entire project into the two production-grade solutions.
 
 ---
 
-## 3. Installation & Setup
+## 3. Running the Streamlit Web Application
 
-### Prerequisites
-* Python 3.10+ (Recommended: Python 3.11 or 3.12)
-* NVIDIA GPU with CUDA 11.8+ or 12.x (Inference also supported on CPU)
-
-### Environment Setup
+### Local Launch
 ```bash
 # Clone the repository
 git clone https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II.git
 cd Feature-Extraction-from-Satellite-Imagery-BTP-II
 
-# Create and activate a virtual environment
-python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
-
-# Install required dependencies
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the Streamlit application
+streamlit run app.py
 ```
+
+### Cloud Deployment (Streamlit Community Cloud)
+The app is deployed at: **[https://mpupqnx7annqnv6ejotxsl.streamlit.app/](https://mpupqnx7annqnv6ejotxsl.streamlit.app/)**
+- The application automatically verifies local checkpoints. If run in a cloud container without local weights, it retrieves the required weights from GitHub Releases on-demand and validates their SHA-256 checksums before loading into memory.
+- Comes preloaded with verified demo samples in `demo_samples/` for instantaneous one-click testing of both models.
 
 ---
 
-## 4. How to Use: Training, Inference & Evaluation
+## 4. Checkpoint Inventory & Release Assets
 
-### 4.1 Model 1: Cartosat-1 2.5m U-Net
-* **Evaluate on Test Benchmark:**
-  ```bash
-  python models/01_cartosat1_unet_2.5m/evaluate.py --config models/01_cartosat1_unet_2.5m/config.yaml
-  ```
-* **Run Training Pipeline:**
-  ```bash
-  python models/01_cartosat1_unet_2.5m/dataset.py
-  ```
+All model checkpoints are hosted in GitHub Releases to keep the repository lightweight:
 
-### 4.2 Model 2: Cartosat-1 2.5m SegFormer
-* **Evaluate SegFormer Benchmark:**
-  ```bash
-  python models/02_cartosat1_segformer_2.5m/evaluate.py --config models/02_cartosat1_segformer_2.5m/config.yaml
-  ```
+### Release v1.0.0 ([Link](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0))
+| Checkpoint Asset | Size | SHA-256 Checksum | Target Model / Role |
+| :--- | :---: | :---: | :--- |
+| `best_expE4_model.pth` | 55.33 MB | `bbd658ed027cc9fe9369a892f09b09ff084436bb442ccac857b2c8049a66e4c0` | **Production Option 1 (E4 Multisensor)** |
+| `best_3subclass_segformer.pth` | 104.62 MB | `1ce752382d1c2b6758deca50508fe73f6b52f2dc8c54e39570728680de15fdf9` | **Production Option 2 (Stage-2 Subclasses)** |
+| `best_hybrid_hierarchical_model.pth` | 521.00 MB | `db15c31848f40b24ce22182bd8a09681a8fc3e1c6c35643245e074e428fa0a53` | Combined Full Architecture Reference |
+| `best_unet.pth` | 314.00 MB | `8c79c235d3e69f5093722cfc5e6c30f9be60b64bc5673b37e0f47aa752ab90d9` | Historical Cartosat-1 U-Net Benchmark |
+| `best_segformer.pth` | 313.90 MB | `67cc16cfeb25cf7c66ab97793b4a3cdffa0287c8fb8c6e4ee86e7b901e5dc361` | Historical Cartosat-1 SegFormer Benchmark |
 
-### 4.3 Model 3: Cartosat-2E 0.60m Hierarchical Hybrid (Flagship)
-* **Run Full Hierarchical 7-Class Benchmark:**
+### Release v1.0.1 ([Link](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1))
+| Checkpoint Asset | Size | SHA-256 Checksum | Target Model / Role |
+| :--- | :---: | :---: | :--- |
+| `best_5class_segformer_extended.pth` | 104.63 MB | `b664b90bde7da335465db2ee27125fd62ff60eb11ac93670c224657df8670d77` | **Production Option 2 (Stage-1 Ensemble: 0.35)** |
+| `best_5class_segformer_lovasz.pth` | 104.63 MB | `6c9bbd80a423b3d77f7bd20799f5a474973c5ce0603540b85c6301e5a112df50` | **Production Option 2 (Stage-1 Ensemble: 0.35)** |
+| `best_5class_unet_multispectral.pth` | 102.24 MB | `a813fe6cd69adfb00164e4e0865ab10e3f972f5273bf0618524f6d81f59151e2` | **Production Option 2 (Stage-1 Ensemble: 0.30)** |
+
+---
+
+## 5. Offline Evaluation & Benchmark Scripts
+
+* **Vashi–Mumbai E4 Multi-Sensor Evaluation:**
+  ```bash
+  python models/05_vashi_mumbai_e4_multisensor/scripts/train_experiment_E4.py --evaluate
+  ```
+* **Pune Multispectral Hierarchical 7-Class Benchmark:**
   ```bash
   python models/03_cartosat2e_hybrid_0.60m/evaluate_hierarchical_benchmark_90plus.py
   ```
-* **Verify Macro & Subclass Forward Passes (Self-Test):**
+* **Comprehensive Integration Pipeline Test (Self-Check):**
   ```bash
-  python scratch/test_all_five_pipelines_v3.py
+  python scratch/test_models.py
   ```
-
-### 4.4 Inspecting GIS Deliverables
-Demo GIS shapefiles are available in `outputs/sample_gis/` and can be loaded directly into **QGIS** or **ArcGIS**:
-* `all_7class_urban_features.shp` — Complete 7-class urban feature map
-* `residential_parcels.shp` — Formal housing boundary polygons
-* `industrial_parcels.shp` — Industrial complex footprint polygons
-* `slum_settlements.shp` — Delineated informal settlement boundaries
-* `road_network.shp` — Vectorized urban transport corridor centerlines
-
----
-
-## 5. Model Checkpoints & Large Data Hosting
-
-GitHub enforces a strict **100 MB per-file limit** and recommends keeping repositories under **1–5 GB**. Consequently:
-* **The Git repository** contains the complete source code, architectures, configuration files, dataset manifests, documentation, reports, presentation decks, and lightweight sample GIS vector layers.
-* **Trained Weights (`.pth` files):** Checkpoints range from 104 MB to 521 MB and are hosted via **[GitHub Releases](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases)**:
-  - `best_unet.pth` (314 MB) $\to$ Place in `models/01_cartosat1_unet_2.5m/`
-  - `best_segformer.pth` (313.9 MB) $\to$ Place in `models/02_cartosat1_segformer_2.5m/`
-  - `best_hybrid_hierarchical_model.pth` (521 MB) $\to$ Place in `models/03_cartosat2e_hybrid_0.60m/`
-  - `best_3subclass_segformer.pth` (104.6 MB) $\to$ Place in `models/04_cartosat2e_subclasses_0.60m/`
-  - `best_expE4_model.pth` (55.3 MB) $\to$ Place in `models/05_vashi_mumbai_e4_multisensor/checkpoints/`
-* **Full Satellite Datasets (13.0 GB):** Raw Cartosat-1, Cartosat-2E, and SPOT-5 scenes are available upon request or via institutional cloud storage as governed by ISRO RSDP data dissemination guidelines.
 
 ---
 
 ## 6. Project Deliverables & Reports
 
 * **Final BTP Report:** [`docs/reports/23b0653.docx`](docs/reports/23b0653.docx) (Comprehensive 8-chapter thesis with complete mathematical formulations, loss functions, and benchmark tables).
-* **Final Presentation:** [`docs/presentations/Urban_Feature_Extraction_Progress_Presentation_Final.pptx`](docs/presentations/Urban_Feature_Extraction_Progress_Presentation_Final.pptx).
-* **Benchmark IoU Visual Overlays:** Located in `outputs/visual_comparisons/`.
+* **Final Presentation Deck:** [`docs/presentations/Urban_Feature_Extraction_Progress_Presentation_Final.pptx`](docs/presentations/Urban_Feature_Extraction_Progress_Presentation_Final.pptx).
+* **Sample GIS Deliverables:** Located in `outputs/sample_gis/` (Vectorized Shapefiles for direct loading in QGIS/ArcGIS).
 
 ---
 
