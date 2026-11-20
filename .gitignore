@@ -38,6 +38,7 @@ models/03_cartosat2e_hybrid_0.60m/reference_checkpoints/*.pth
 BTP_Report_*_REVISED.docx
 scripts/apply_report_revisions.py
 scripts/verify_revisions.py
+scripts/verify_clone_lfs.py
 
 # Exclude Large Local Datasets by Default
 data/raw/
