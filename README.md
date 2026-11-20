@@ -135,7 +135,7 @@ All model checkpoints are hosted in GitHub Releases to keep the repository light
 
 ## 6. Project Deliverables & Reports
 
-* **Final BTP Report:** [`docs/reports/23b0653.docx`](docs/reports/23b0653.docx) (Comprehensive 8-chapter thesis with complete mathematical formulations, loss functions, and benchmark tables).
+* **Final BTP Report:** [`BTP_Report_23B0653.docx`](BTP_Report_23B0653.docx) (also mirrored in [`docs/reports/BTP_Report_23B0653.docx`](docs/reports/BTP_Report_23B0653.docx)) — Comprehensive 8-chapter thesis entitled *"Urban Feature Extraction from High-Resolution Satellite Imagery: Multi-Resolution Land-Cover Segmentation and Hierarchical Urban Feature Mapping"*.
 * **Final Presentation Deck:** [`docs/presentations/Urban_Feature_Extraction_Progress_Presentation_Final.pptx`](docs/presentations/Urban_Feature_Extraction_Progress_Presentation_Final.pptx).
 * **Sample GIS Deliverables:** Located in `outputs/sample_gis/` (Vectorized Shapefiles for direct loading in QGIS/ArcGIS).
 
@@ -143,6 +143,5 @@ All model checkpoints are hosted in GitHub Releases to keep the repository light
 
 ## 7. Authors & Acknowledgments
 
-* **Author:** Prabhakar Yadav (Roll No. 23B0653), IIT Bombay
-* **Advisor:** Prof. Biplab Banerjee, Centre of Studies in Resources Engineering (CSRE), IIT Bombay
-* **Sponsoring Body:** Indian Space Research Organisation (ISRO) & CSRE / KReSIT, IIT Bombay
+* **Author:** Prabhakar Yadav (Roll No. 23B0653), Department of Civil Engineering, Indian Institute of Technology Bombay
+* **Supervisor:** Prof. Gopal Patil, Department of Civil Engineering, Indian Institute of Technology Bombay

@@ -757,4 +757,4 @@ else:
             )
 
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #94A3B8;'>IIT Bombay CSRE | Sponsoring Body: ISRO & CSRE / KReSIT | BTP-II Urban Feature Extraction Platform</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #94A3B8;'>Department of Civil Engineering, Indian Institute of Technology Bombay | BTP-II Urban Feature Extraction Platform</p>", unsafe_allow_html=True)
