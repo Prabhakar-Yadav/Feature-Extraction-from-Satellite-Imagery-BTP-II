@@ -117,12 +117,21 @@ def verify_sha256(file_path: Path, expected_hash: str) -> bool:
 
 
 def ensure_checkpoint(filename: str, candidate_paths: list, release_tag: str = "v1.0.0") -> Path:
-    """Checks local candidate paths; verifies SHA-256; downloads if missing."""
+    """Checks local candidate paths; verifies SHA-256; downloads from GitHub Releases if missing or LFS pointer."""
     expected_sha = EXPECTED_SHAS.get(filename)
 
     for p in candidate_paths:
         path_obj = Path(p)
-        if path_obj.exists() and path_obj.stat().st_size > 1000:
+        if path_obj.exists():
+            # If file is a Git LFS pointer text file (e.g. on Streamlit Cloud without LFS smudge), skip to downloader
+            if path_obj.stat().st_size < 2000:
+                try:
+                    with open(path_obj, "rb") as f:
+                        header = f.read(35)
+                        if b"version https://git-lfs" in header:
+                            continue
+                except Exception:
+                    pass
             if expected_sha is None or verify_sha256(path_obj, expected_sha):
                 return path_obj
 

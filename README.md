@@ -94,25 +94,60 @@ The app is deployed at: **[https://mpupqnx7annqnv6ejotxsl.streamlit.app/](https:
 
 ---
 
-## 4. Checkpoint Inventory & Release Assets
+## 4. Model Checkpoint Organization & Git LFS Storage
 
-All model checkpoints are hosted in GitHub Releases to keep the repository lightweight:
+All five production model checkpoints are organized directly within their respective model directories and tracked via **Git LFS (Large File Storage)**. GitHub Releases (v1.0.0 and v1.0.1) remain permanently accessible as backup and cloud auto-download fallback endpoints.
 
-### Release v1.0.0 ([Link](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0))
-| Checkpoint Asset | Size | SHA-256 Checksum | Target Model / Role |
-| :--- | :---: | :---: | :--- |
-| `best_expE4_model.pth` | 55.33 MB | `bbd658ed027cc9fe9369a892f09b09ff084436bb442ccac857b2c8049a66e4c0` | **Production Option 1 (E4 Multisensor)** |
-| `best_3subclass_segformer.pth` | 104.62 MB | `1ce752382d1c2b6758deca50508fe73f6b52f2dc8c54e39570728680de15fdf9` | **Production Option 2 (Stage-2 Subclasses)** |
-| `best_hybrid_hierarchical_model.pth` | 521.00 MB | `db15c31848f40b24ce22182bd8a09681a8fc3e1c6c35643245e074e428fa0a53` | Combined Full Architecture Reference |
-| `best_unet.pth` | 314.00 MB | `8c79c235d3e69f5093722cfc5e6c30f9be60b64bc5673b37e0f47aa752ab90d9` | Historical Cartosat-1 U-Net Benchmark |
-| `best_segformer.pth` | 313.90 MB | `67cc16cfeb25cf7c66ab97793b4a3cdffa0287c8fb8c6e4ee86e7b901e5dc361` | Historical Cartosat-1 SegFormer Benchmark |
+### Production Checkpoint Directory Structure
+```
+models/
+├── 05_vashi_mumbai_e4_multisensor/
+│   └── checkpoints/
+│       └── best_expE4_model.pth                  # Model 1 (E4 Multisensor Sensor-Adaptive U-Net)
+│
+└── 03_cartosat2e_hybrid_0.60m/
+    ├── checkpoints/                              # Model 2 (Active Production Components)
+    │   ├── best_5class_segformer_extended.pth    # Stage 1 Macro Ensemble (Weight: 0.35)
+    │   ├── best_5class_segformer_lovasz.pth      # Stage 1 Macro Ensemble (Weight: 0.35)
+    │   ├── best_5class_unet_multispectral.pth    # Stage 1 Macro Ensemble (Weight: 0.30)
+    │   └── best_3subclass_segformer.pth          # Stage 2 Subclass Specialist (Gated in Built-Up)
+    └── reference_checkpoints/
+        ├── best_hybrid_hierarchical_model.pth    # Monolithic Combined Architecture (Epoch 6 Reference)
+        └── README.md                             # Architectural Reference Documentation
+```
 
-### Release v1.0.1 ([Link](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1))
-| Checkpoint Asset | Size | SHA-256 Checksum | Target Model / Role |
-| :--- | :---: | :---: | :--- |
-| `best_5class_segformer_extended.pth` | 104.63 MB | `b664b90bde7da335465db2ee27125fd62ff60eb11ac93670c224657df8670d77` | **Production Option 2 (Stage-1 Ensemble: 0.35)** |
-| `best_5class_segformer_lovasz.pth` | 104.63 MB | `6c9bbd80a423b3d77f7bd20799f5a474973c5ce0603540b85c6301e5a112df50` | **Production Option 2 (Stage-1 Ensemble: 0.35)** |
-| `best_5class_unet_multispectral.pth` | 102.24 MB | `a813fe6cd69adfb00164e4e0865ab10e3f972f5273bf0618524f6d81f59151e2` | **Production Option 2 (Stage-1 Ensemble: 0.30)** |
+### Production Model Checkpoint Inventory
+| Checkpoint Path in Repository | Size | SHA-256 Checksum | Pipeline Role | Release Fallback |
+| :--- | :---: | :---: | :--- | :---: |
+| `models/05_vashi_mumbai_e4_multisensor/checkpoints/best_expE4_model.pth` | 55.33 MB | `bbd658ed027cc9fe9369a892f09b09ff084436bb442ccac857b2c8049a66e4c0` | **Model 1 (Primary):** E4 Sensor-Adaptive U-Net (SPOT 5-ch / Pléiades RGB) | [v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0) |
+| `models/03_cartosat2e_hybrid_0.60m/checkpoints/best_5class_segformer_extended.pth` | 104.63 MB | `b664b90bde7da335465db2ee27125fd62ff60eb11ac93670c224657df8670d77` | **Model 2:** Stage 1 Macro SegFormer Extended (Weight 0.35) | [v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1) |
+| `models/03_cartosat2e_hybrid_0.60m/checkpoints/best_5class_segformer_lovasz.pth` | 104.63 MB | `6c9bbd80a423b3d77f7bd20799f5a474973c5ce0603540b85c6301e5a112df50` | **Model 2:** Stage 1 Macro SegFormer Lovász (Weight 0.35) | [v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1) |
+| `models/03_cartosat2e_hybrid_0.60m/checkpoints/best_5class_unet_multispectral.pth` | 102.24 MB | `a813fe6cd69adfb00164e4e0865ab10e3f972f5273bf0618524f6d81f59151e2` | **Model 2:** Stage 1 Macro UltraRoad ResNet-34 U-Net (Weight 0.30) | [v1.0.1](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.1) |
+| `models/03_cartosat2e_hybrid_0.60m/checkpoints/best_3subclass_segformer.pth` | 104.62 MB | `1ce752382d1c2b6758deca50508fe73f6b52f2dc8c54e39570728680de15fdf9` | **Model 2:** Stage 2 Subclass Specialist (Residential, Industrial, Slum) | [v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0) |
+
+### Why Model 2 (Hybrid) Uses Four Separate Components
+The Pune–Chennai 7-class hybrid pipeline uses a two-stage hierarchical architecture:
+1. **Stage 1 (Macro 5-Class Segmentation):** Blends global semantic transformer representations (SegFormer Extended and Lovász variants) with fine-grained road edge representations (UltraRoad ResNet-34 U-Net) using calibrated probability weights ($0.35 + 0.35 + 0.30$). Splitting the macro ensemble into three components allows independent 8-way dihedral test-time augmentation (TTA), modular benchmarking, and reduced peak GPU memory.
+2. **Stage 2 (Built-Up Subclass Specialist):** Focuses specifically on separating built-up pixels into Residential, Industrial, and Informal Settlement / Slum classes. It is applied conditionally as a spatial gate over the macro built-up prediction, avoiding false positive subclass predictions in agricultural or barren regions.
+
+### Reference Monolithic Hybrid Checkpoint
+* `models/03_cartosat2e_hybrid_0.60m/reference_checkpoints/best_hybrid_hierarchical_model.pth` (521.0 MB, SHA-256: `db15c31848f40b24ce22182bd8a09681a8fc3e1c6c35643245e074e428fa0a53`): End-to-end trained model (Epoch 6) containing `alpha_macro`, full encoder-decoder, and subclass head state dictionaries. Preserved locally for training reproducibility and downloadable from [Release v1.0.0](https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II/releases/tag/v1.0.0).
+
+### Git LFS Setup & How to Retrieve Model Weights
+To clone the repository and retrieve the binary model checkpoints:
+```bash
+# 1. Install Git LFS (if not already installed)
+git lfs install
+
+# 2. Clone the repository
+git clone https://github.com/Prabhakar-Yadav/Feature-Extraction-from-Satellite-Imagery-BTP-II.git
+cd Feature-Extraction-from-Satellite-Imagery-BTP-II
+
+# 3. Pull all Git LFS binary files
+git lfs pull
+```
+
+> **Automated Cloud Fallback:** If the repository is cloned in an environment without Git LFS (or where pointer text files are received), the Streamlit loader in `app.py` automatically detects pointer files, falls back to GitHub Releases v1.0.0 and v1.0.1, downloads the full binary weights, and validates their SHA-256 hashes before loading.
 
 ---
 

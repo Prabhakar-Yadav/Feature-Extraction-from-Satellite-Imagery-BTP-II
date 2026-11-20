@@ -2,3 +2,7 @@
 *.pt filter=lfs diff=lfs merge=lfs -text
 *.joblib filter=lfs diff=lfs merge=lfs -text
 *.tif filter=lfs diff=lfs merge=lfs -text
+
+# Explicit Git LFS tracking for production model weights
+models/05_vashi_mumbai_e4_multisensor/checkpoints/*.pth filter=lfs diff=lfs merge=lfs -text
+models/03_cartosat2e_hybrid_0.60m/checkpoints/*.pth filter=lfs diff=lfs merge=lfs -text

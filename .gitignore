@@ -25,6 +25,20 @@ dist/
 *.npy
 *.npz
 
+# Whitelist Production Model Checkpoints for Git LFS Tracking
+!models/05_vashi_mumbai_e4_multisensor/checkpoints/
+!models/05_vashi_mumbai_e4_multisensor/checkpoints/*.pth
+!models/03_cartosat2e_hybrid_0.60m/checkpoints/
+!models/03_cartosat2e_hybrid_0.60m/checkpoints/*.pth
+
+# Exclude Reference Checkpoints from Git Tracking (hosted in GitHub Releases)
+models/03_cartosat2e_hybrid_0.60m/reference_checkpoints/*.pth
+
+# Thesis Report Working Files (Excluded from GitHub repository commits)
+BTP_Report_*_REVISED.docx
+scripts/apply_report_revisions.py
+scripts/verify_revisions.py
+
 # Exclude Large Local Datasets by Default
 data/raw/
 data/processed/
