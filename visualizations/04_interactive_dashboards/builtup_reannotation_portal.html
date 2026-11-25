@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartosat-2E Built-up Ground Truth QA & Human Verification Portal</title>
+    <style>
+        :root {
+            --bg-dark: #121417;
+            --bg-card: #1e2227;
+            --border: #323842;
+            --accent: #007acc;
+            --text-main: #f0f3f6;
+            --text-muted: #9ba3af;
+            --res: #e65a46;
+            --ind: #8c32be;
+            --slum: #ff7800;
+            --veg: #229628;
+            --barren: #d7b991;
+            --road: #ffe114;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #sidebar {
+            width: 480px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            padding: 18px;
+            background: #181b20;
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .header p { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 12px 18px;
+            background: #16181d;
+            border-bottom: 1px solid var(--border);
+        }
+        .stat-card {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+        }
+        .stat-val { font-size: 16px; font-weight: bold; color: #58a6ff; }
+        .stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+        .patch-table-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th {
+            background: #1c2128;
+            position: sticky;
+            top: 0;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #282e37;
+            cursor: pointer;
+        }
+        tr:hover td { background: #262c36; }
+        tr.active td { background: #1f334d; border-color: #388bfd; }
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .badge-error { background: #4d1e22; color: #ff7b72; }
+        .badge-success { background: #1b3c29; color: #56d364; }
+        .badge-res { background: #3d1c1c; color: var(--res); }
+        .badge-ind { background: #2f1d44; color: #d2a8ff; }
+        .badge-slum { background: #402914; color: var(--slum); }
+        .badge-bldg { background: #132d4b; color: #58a6ff; }
+        .badge-pending { background: #332d16; color: #e3b341; }
+        .badge-approved { background: #163622; color: #3fb950; }
+        
+        #viewer {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0d1117;
+            overflow: hidden;
+        }
+        .toolbar {
+            padding: 12px 20px;
+            background: #161b22;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .toolbar-title { font-size: 15px; font-weight: 600; }
+        .btn-group { display: flex; gap: 8px; }
+        .btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #30363d; border-color: #8b949e; }
+        .btn-primary { background: #238636; border-color: #2ea043; color: #fff; }
+        .btn-primary:hover { background: #2ea043; }
+        .image-viewport {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .image-viewport img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid #30363d;
+        }
+        .legend-bar {
+            padding: 10px 20px;
+            background: #161b22;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div class="header">
+            <h1>Cartosat-2E Built-up Ground Truth Review</h1>
+            <p>20 Priority Patches with Missing OSM Building Footprints & Full 186-Patch Test Audit</p>
+        </div>
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-val">20</div>
+                <div class="stat-lbl">Priority Patches</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val">87.5%</div>
+                <div class="stat-lbl">Avg Orig Barren</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val">+41.2%</div>
+                <div class="stat-lbl">Avg Recovered Built</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="approved-count">0 / 20</div>
+                <div class="stat-lbl">Verified</div>
+            </div>
+        </div>
+        <div class="patch-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patch ID</th>
+                        <th>Orig Barren</th>
+                        <th>Prop Barren</th>
+                        <th>Res</th>
+                        <th>Ind</th>
+                        <th>Slum</th>
+                        <th>+Built</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr id="row-test_pune_0505" onclick="selectPatch('test_pune_0505')">
+            <td><strong>test_pune_0505</strong></td>
+            <td><span class="badge badge-error">89.1%</span></td>
+            <td><span class="badge badge-success">47.6%</span></td>
+            <td><span class="badge badge-res">8.8%</span></td>
+            <td><span class="badge badge-ind">5.0%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+13.8%</span></td>
+            <td><span id="status-test_pune_0505" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0506" onclick="selectPatch('test_pune_0506')">
+            <td><strong>test_pune_0506</strong></td>
+            <td><span class="badge badge-error">81.3%</span></td>
+            <td><span class="badge badge-success">38.5%</span></td>
+            <td><span class="badge badge-res">10.1%</span></td>
+            <td><span class="badge badge-ind">4.8%</span></td>
+            <td><span class="badge badge-slum">0.2%</span></td>
+            <td><span class="badge badge-bldg">+15.0%</span></td>
+            <td><span id="status-test_pune_0506" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0507" onclick="selectPatch('test_pune_0507')">
+            <td><strong>test_pune_0507</strong></td>
+            <td><span class="badge badge-error">86.4%</span></td>
+            <td><span class="badge badge-success">58.9%</span></td>
+            <td><span class="badge badge-res">7.1%</span></td>
+            <td><span class="badge badge-ind">0.4%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+7.5%</span></td>
+            <td><span id="status-test_pune_0507" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0508" onclick="selectPatch('test_pune_0508')">
+            <td><strong>test_pune_0508</strong></td>
+            <td><span class="badge badge-error">91.8%</span></td>
+            <td><span class="badge badge-success">42.2%</span></td>
+            <td><span class="badge badge-res">9.9%</span></td>
+            <td><span class="badge badge-ind">4.1%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+14.2%</span></td>
+            <td><span id="status-test_pune_0508" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0509" onclick="selectPatch('test_pune_0509')">
+            <td><strong>test_pune_0509</strong></td>
+            <td><span class="badge badge-error">86.4%</span></td>
+            <td><span class="badge badge-success">36.8%</span></td>
+            <td><span class="badge badge-res">8.2%</span></td>
+            <td><span class="badge badge-ind">9.2%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+17.5%</span></td>
+            <td><span id="status-test_pune_0509" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0510" onclick="selectPatch('test_pune_0510')">
+            <td><strong>test_pune_0510</strong></td>
+            <td><span class="badge badge-error">95.2%</span></td>
+            <td><span class="badge badge-success">50.8%</span></td>
+            <td><span class="badge badge-res">11.6%</span></td>
+            <td><span class="badge badge-ind">7.9%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+19.5%</span></td>
+            <td><span id="status-test_pune_0510" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0511" onclick="selectPatch('test_pune_0511')">
+            <td><strong>test_pune_0511</strong></td>
+            <td><span class="badge badge-error">94.1%</span></td>
+            <td><span class="badge badge-success">47.7%</span></td>
+            <td><span class="badge badge-res">11.8%</span></td>
+            <td><span class="badge badge-ind">5.1%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+17.0%</span></td>
+            <td><span id="status-test_pune_0511" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0517" onclick="selectPatch('test_pune_0517')">
+            <td><strong>test_pune_0517</strong></td>
+            <td><span class="badge badge-error">100.0%</span></td>
+            <td><span class="badge badge-success">83.7%</span></td>
+            <td><span class="badge badge-res">4.3%</span></td>
+            <td><span class="badge badge-ind">2.3%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+6.7%</span></td>
+            <td><span id="status-test_pune_0517" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0521" onclick="selectPatch('test_pune_0521')">
+            <td><strong>test_pune_0521</strong></td>
+            <td><span class="badge badge-error">91.1%</span></td>
+            <td><span class="badge badge-success">41.6%</span></td>
+            <td><span class="badge badge-res">11.4%</span></td>
+            <td><span class="badge badge-ind">3.1%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+14.5%</span></td>
+            <td><span id="status-test_pune_0521" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0522" onclick="selectPatch('test_pune_0522')">
+            <td><strong>test_pune_0522</strong></td>
+            <td><span class="badge badge-error">88.3%</span></td>
+            <td><span class="badge badge-success">34.4%</span></td>
+            <td><span class="badge badge-res">10.7%</span></td>
+            <td><span class="badge badge-ind">2.0%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+12.8%</span></td>
+            <td><span id="status-test_pune_0522" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0523" onclick="selectPatch('test_pune_0523')">
+            <td><strong>test_pune_0523</strong></td>
+            <td><span class="badge badge-error">92.2%</span></td>
+            <td><span class="badge badge-success">43.4%</span></td>
+            <td><span class="badge badge-res">11.2%</span></td>
+            <td><span class="badge badge-ind">1.9%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+13.2%</span></td>
+            <td><span id="status-test_pune_0523" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0524" onclick="selectPatch('test_pune_0524')">
+            <td><strong>test_pune_0524</strong></td>
+            <td><span class="badge badge-error">85.3%</span></td>
+            <td><span class="badge badge-success">43.5%</span></td>
+            <td><span class="badge badge-res">11.7%</span></td>
+            <td><span class="badge badge-ind">1.7%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+13.5%</span></td>
+            <td><span id="status-test_pune_0524" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0525" onclick="selectPatch('test_pune_0525')">
+            <td><strong>test_pune_0525</strong></td>
+            <td><span class="badge badge-error">94.2%</span></td>
+            <td><span class="badge badge-success">48.6%</span></td>
+            <td><span class="badge badge-res">10.2%</span></td>
+            <td><span class="badge badge-ind">3.5%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+13.8%</span></td>
+            <td><span id="status-test_pune_0525" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0526" onclick="selectPatch('test_pune_0526')">
+            <td><strong>test_pune_0526</strong></td>
+            <td><span class="badge badge-error">81.0%</span></td>
+            <td><span class="badge badge-success">24.5%</span></td>
+            <td><span class="badge badge-res">6.9%</span></td>
+            <td><span class="badge badge-ind">8.8%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+15.6%</span></td>
+            <td><span id="status-test_pune_0526" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0535" onclick="selectPatch('test_pune_0535')">
+            <td><strong>test_pune_0535</strong></td>
+            <td><span class="badge badge-error">80.3%</span></td>
+            <td><span class="badge badge-success">36.6%</span></td>
+            <td><span class="badge badge-res">9.6%</span></td>
+            <td><span class="badge badge-ind">3.2%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+12.9%</span></td>
+            <td><span id="status-test_pune_0535" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0536" onclick="selectPatch('test_pune_0536')">
+            <td><strong>test_pune_0536</strong></td>
+            <td><span class="badge badge-error">80.9%</span></td>
+            <td><span class="badge badge-success">37.6%</span></td>
+            <td><span class="badge badge-res">9.7%</span></td>
+            <td><span class="badge badge-ind">1.8%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+11.6%</span></td>
+            <td><span id="status-test_pune_0536" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0537" onclick="selectPatch('test_pune_0537')">
+            <td><strong>test_pune_0537</strong></td>
+            <td><span class="badge badge-error">85.5%</span></td>
+            <td><span class="badge badge-success">34.9%</span></td>
+            <td><span class="badge badge-res">10.5%</span></td>
+            <td><span class="badge badge-ind">0.4%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+11.0%</span></td>
+            <td><span id="status-test_pune_0537" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0538" onclick="selectPatch('test_pune_0538')">
+            <td><strong>test_pune_0538</strong></td>
+            <td><span class="badge badge-error">75.6%</span></td>
+            <td><span class="badge badge-success">32.1%</span></td>
+            <td><span class="badge badge-res">8.7%</span></td>
+            <td><span class="badge badge-ind">2.0%</span></td>
+            <td><span class="badge badge-slum">0.0%</span></td>
+            <td><span class="badge badge-bldg">+10.7%</span></td>
+            <td><span id="status-test_pune_0538" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0539" onclick="selectPatch('test_pune_0539')">
+            <td><strong>test_pune_0539</strong></td>
+            <td><span class="badge badge-error">82.5%</span></td>
+            <td><span class="badge badge-success">41.3%</span></td>
+            <td><span class="badge badge-res">10.0%</span></td>
+            <td><span class="badge badge-ind">1.9%</span></td>
+            <td><span class="badge badge-slum">0.2%</span></td>
+            <td><span class="badge badge-bldg">+12.1%</span></td>
+            <td><span id="status-test_pune_0539" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+        <tr id="row-test_pune_0540" onclick="selectPatch('test_pune_0540')">
+            <td><strong>test_pune_0540</strong></td>
+            <td><span class="badge badge-error">98.8%</span></td>
+            <td><span class="badge badge-success">72.4%</span></td>
+            <td><span class="badge badge-res">7.6%</span></td>
+            <td><span class="badge badge-ind">0.4%</span></td>
+            <td><span class="badge badge-slum">0.1%</span></td>
+            <td><span class="badge badge-bldg">+8.0%</span></td>
+            <td><span id="status-test_pune_0540" class="badge badge-pending">Review Pending</span></td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div id="viewer">
+        <div class="toolbar">
+            <div class="toolbar-title" id="active-title">Select a patch to review</div>
+            <div class="btn-group">
+                <button class="btn" onclick="prevPatch()">Previous</button>
+                <button class="btn" onclick="nextPatch()">Next</button>
+                <button class="btn btn-primary" onclick="approveCurrent()">Approve Correction</button>
+            </div>
+        </div>
+        <div class="image-viewport">
+            <img id="main-display" src="" alt="Comparison View" style="display:none;">
+        </div>
+        <div class="legend-bar">
+            <div class="legend-item"><div class="legend-color" style="background: rgb(30,120,220);"></div> Water (0)</div>
+            <div class="legend-item"><div class="legend-color" style="background: rgb(34,150,40);"></div> Vegetation (1)</div>
+            <div class="legend-item"><div class="legend-color" style="background: rgb(215,185,145);"></div> Barren Land (2)</div>
+            <div class="legend-item"><div class="legend-color" style="background: rgb(230,90,70);"></div> Residential (3)</div>
+            <div class="legend-item"><div class="legend-color" style="background: rgb(140,50,190);"></div> Industrial (4)</div>
+            <div class="legend-item"><div class="legend-color" style="background: rgb(255,120,0);"></div> Slum / Informal (5)</div>
+            <div class="legend-item"><div class="legend-color" style="background: rgb(255,225,20);"></div> Road Network (6)</div>
+            <div class="legend-item"><div class="legend-color" style="background: rgb(150,150,150);"></div> Uncertain / Ignore (255)</div>
+        </div>
+    </div>
+
+    <script>
+        const records = [{"patch_id": "test_pune_0505", "orig_barren_pct": 89.1, "prop_barren_pct": 47.6, "prop_res_pct": 8.8, "prop_ind_pct": 5.0, "prop_slum_pct": 0.0, "prop_bldg_pct": 13.8, "img_10panel": "patch_comparisons/test_pune_0505_10panel_comparison.png"}, {"patch_id": "test_pune_0506", "orig_barren_pct": 81.3, "prop_barren_pct": 38.5, "prop_res_pct": 10.1, "prop_ind_pct": 4.8, "prop_slum_pct": 0.2, "prop_bldg_pct": 15.0, "img_10panel": "patch_comparisons/test_pune_0506_10panel_comparison.png"}, {"patch_id": "test_pune_0507", "orig_barren_pct": 86.4, "prop_barren_pct": 58.9, "prop_res_pct": 7.1, "prop_ind_pct": 0.4, "prop_slum_pct": 0.0, "prop_bldg_pct": 7.5, "img_10panel": "patch_comparisons/test_pune_0507_10panel_comparison.png"}, {"patch_id": "test_pune_0508", "orig_barren_pct": 91.8, "prop_barren_pct": 42.2, "prop_res_pct": 9.9, "prop_ind_pct": 4.1, "prop_slum_pct": 0.1, "prop_bldg_pct": 14.2, "img_10panel": "patch_comparisons/test_pune_0508_10panel_comparison.png"}, {"patch_id": "test_pune_0509", "orig_barren_pct": 86.4, "prop_barren_pct": 36.8, "prop_res_pct": 8.2, "prop_ind_pct": 9.2, "prop_slum_pct": 0.1, "prop_bldg_pct": 17.5, "img_10panel": "patch_comparisons/test_pune_0509_10panel_comparison.png"}, {"patch_id": "test_pune_0510", "orig_barren_pct": 95.2, "prop_barren_pct": 50.8, "prop_res_pct": 11.6, "prop_ind_pct": 7.9, "prop_slum_pct": 0.1, "prop_bldg_pct": 19.5, "img_10panel": "patch_comparisons/test_pune_0510_10panel_comparison.png"}, {"patch_id": "test_pune_0511", "orig_barren_pct": 94.1, "prop_barren_pct": 47.7, "prop_res_pct": 11.8, "prop_ind_pct": 5.1, "prop_slum_pct": 0.1, "prop_bldg_pct": 17.0, "img_10panel": "patch_comparisons/test_pune_0511_10panel_comparison.png"}, {"patch_id": "test_pune_0517", "orig_barren_pct": 100.0, "prop_barren_pct": 83.7, "prop_res_pct": 4.3, "prop_ind_pct": 2.3, "prop_slum_pct": 0.0, "prop_bldg_pct": 6.7, "img_10panel": "patch_comparisons/test_pune_0517_10panel_comparison.png"}, {"patch_id": "test_pune_0521", "orig_barren_pct": 91.1, "prop_barren_pct": 41.6, "prop_res_pct": 11.4, "prop_ind_pct": 3.1, "prop_slum_pct": 0.0, "prop_bldg_pct": 14.5, "img_10panel": "patch_comparisons/test_pune_0521_10panel_comparison.png"}, {"patch_id": "test_pune_0522", "orig_barren_pct": 88.3, "prop_barren_pct": 34.4, "prop_res_pct": 10.7, "prop_ind_pct": 2.0, "prop_slum_pct": 0.0, "prop_bldg_pct": 12.8, "img_10panel": "patch_comparisons/test_pune_0522_10panel_comparison.png"}, {"patch_id": "test_pune_0523", "orig_barren_pct": 92.2, "prop_barren_pct": 43.4, "prop_res_pct": 11.2, "prop_ind_pct": 1.9, "prop_slum_pct": 0.1, "prop_bldg_pct": 13.2, "img_10panel": "patch_comparisons/test_pune_0523_10panel_comparison.png"}, {"patch_id": "test_pune_0524", "orig_barren_pct": 85.3, "prop_barren_pct": 43.5, "prop_res_pct": 11.7, "prop_ind_pct": 1.7, "prop_slum_pct": 0.1, "prop_bldg_pct": 13.5, "img_10panel": "patch_comparisons/test_pune_0524_10panel_comparison.png"}, {"patch_id": "test_pune_0525", "orig_barren_pct": 94.2, "prop_barren_pct": 48.6, "prop_res_pct": 10.2, "prop_ind_pct": 3.5, "prop_slum_pct": 0.0, "prop_bldg_pct": 13.8, "img_10panel": "patch_comparisons/test_pune_0525_10panel_comparison.png"}, {"patch_id": "test_pune_0526", "orig_barren_pct": 81.0, "prop_barren_pct": 24.5, "prop_res_pct": 6.9, "prop_ind_pct": 8.8, "prop_slum_pct": 0.0, "prop_bldg_pct": 15.6, "img_10panel": "patch_comparisons/test_pune_0526_10panel_comparison.png"}, {"patch_id": "test_pune_0535", "orig_barren_pct": 80.3, "prop_barren_pct": 36.6, "prop_res_pct": 9.6, "prop_ind_pct": 3.2, "prop_slum_pct": 0.0, "prop_bldg_pct": 12.9, "img_10panel": "patch_comparisons/test_pune_0535_10panel_comparison.png"}, {"patch_id": "test_pune_0536", "orig_barren_pct": 80.9, "prop_barren_pct": 37.6, "prop_res_pct": 9.7, "prop_ind_pct": 1.8, "prop_slum_pct": 0.1, "prop_bldg_pct": 11.6, "img_10panel": "patch_comparisons/test_pune_0536_10panel_comparison.png"}, {"patch_id": "test_pune_0537", "orig_barren_pct": 85.5, "prop_barren_pct": 34.9, "prop_res_pct": 10.5, "prop_ind_pct": 0.4, "prop_slum_pct": 0.1, "prop_bldg_pct": 11.0, "img_10panel": "patch_comparisons/test_pune_0537_10panel_comparison.png"}, {"patch_id": "test_pune_0538", "orig_barren_pct": 75.6, "prop_barren_pct": 32.1, "prop_res_pct": 8.7, "prop_ind_pct": 2.0, "prop_slum_pct": 0.0, "prop_bldg_pct": 10.7, "img_10panel": "patch_comparisons/test_pune_0538_10panel_comparison.png"}, {"patch_id": "test_pune_0539", "orig_barren_pct": 82.5, "prop_barren_pct": 41.3, "prop_res_pct": 10.0, "prop_ind_pct": 1.9, "prop_slum_pct": 0.2, "prop_bldg_pct": 12.1, "img_10panel": "patch_comparisons/test_pune_0539_10panel_comparison.png"}, {"patch_id": "test_pune_0540", "orig_barren_pct": 98.8, "prop_barren_pct": 72.4, "prop_res_pct": 7.6, "prop_ind_pct": 0.4, "prop_slum_pct": 0.1, "prop_bldg_pct": 8.0, "img_10panel": "patch_comparisons/test_pune_0540_10panel_comparison.png"}];
+        let currentIndex = 0;
+        const approvals = {};
+
+        function selectPatch(pid) {
+            const idx = records.findIndex(r => r.patch_id === pid);
+            if (idx !== -1) {
+                currentIndex = idx;
+                renderActive();
+            }
+        }
+
+        function renderActive() {
+            const r = records[currentIndex];
+            document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('active'));
+            const activeRow = document.getElementById('row-' + r.patch_id);
+            if (activeRow) activeRow.classList.add('active');
+            
+            document.getElementById('active-title').innerHTML = 
+                `<strong>${r.patch_id}</strong> &bull; Orig Barren: ${r.orig_barren_pct}% &rarr; Proposed Barren: ${r.prop_barren_pct}% | Recovered Built-up: +${r.prop_bldg_pct}% (Res: ${r.prop_res_pct}%, Ind: ${r.prop_ind_pct}%, Slum: ${r.prop_slum_pct}%)`;
+                
+            const img = document.getElementById('main-display');
+            img.src = r.img_10panel;
+            img.style.display = 'block';
+        }
+
+        function prevPatch() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderActive();
+            }
+        }
+
+        function nextPatch() {
+            if (currentIndex < records.length - 1) {
+                currentIndex++;
+                renderActive();
+            }
+        }
+
+        function approveCurrent() {
+            const r = records[currentIndex];
+            approvals[r.patch_id] = true;
+            const badge = document.getElementById('status-' + r.patch_id);
+            badge.className = 'badge badge-approved';
+            badge.textContent = 'Human Verified';
+            updateApprovedCount();
+            if (currentIndex < records.length - 1) {
+                nextPatch();
+            }
+        }
+
+        function updateApprovedCount() {
+            const count = Object.keys(approvals).length;
+            document.getElementById('approved-count').textContent = `${count} / ${records.length}`;
+        }
+
+        // Initialize with first patch
+        if (records.length > 0) {
+            renderActive();
+        }
+    </script>
+</body>
+</html>
+    
